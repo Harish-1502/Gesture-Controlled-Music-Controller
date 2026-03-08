@@ -25,4 +25,6 @@ const FlexThresholds& getFlexThresholds();
 const FlexCalibrationRaw& getFlexCalibrationRaw();
 
 int readFlexAvg(int flexPin, bool calibrationMode);
-int interp(int relax, int bent, float pct);
+int calibration_interp(int relax, int bent, float pct);
+
+bool calibrationRequested();

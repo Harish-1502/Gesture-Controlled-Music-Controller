@@ -3,6 +3,7 @@
 
 #include <Arduino.h>
 #include <Preferences.h>
+// #include <OneButton.h>
 
 namespace {
     Preferences pref;
@@ -13,10 +14,23 @@ namespace {
     float ema1 = 0.0f;
     float ema2 = 0.0f;
 
-    void flash_led() {
-        digitalWrite(PIN_LIGHT, HIGH);
-        delay(50);
-        digitalWrite(PIN_LIGHT, LOW);
+    void flash_led(int times) {
+        for (int i = 0; i < times; i++)
+        {
+            digitalWrite(PIN_LIGHT, HIGH);
+            delay(150);
+            digitalWrite(PIN_LIGHT, LOW);
+            delay(150);
+        }
+    }
+    
+    void countdown(int seconds)
+    {
+        for(int i = seconds; i > 0; i--)
+        {
+            Serial.printf("%d...\n", i);
+            delay(1000);
+        }
     }
 
     void compute_thresholds() {
@@ -26,17 +40,19 @@ namespace {
         thresholds.f1Off = static_cast<int>(thresholds.f1On * 0.85f);
         thresholds.f2Off = static_cast<int>(thresholds.f2On * 0.85f);
     }
+    
+    
 }
-
-void calibration_init() {
-    pinMode(PIN_LIGHT, OUTPUT);
-}
-
 int calibration_interp(int relax, int bent, float pct) {
     return static_cast<int>(relax + pct * (bent - relax));
 }
 
-int calibration_read_flex_avg(int flexPin, bool calibrationMode) {
+void startCalibration() {
+    pinMode(PIN_LIGHT, OUTPUT);
+    // button.attachLongPressStart(runCalibration);
+}
+
+int readFlexAvg(int flexPin, bool calibrationMode) {
     int values[5];
 
     for (int i = 0; i < 5; i++) {
@@ -69,7 +85,7 @@ int calibration_read_flex_avg(int flexPin, bool calibrationMode) {
     }
 }
 
-void calibration_save() {
+void saveCalibration() {
     pref.begin("mp3-controller", false);
 
     pref.putInt("f1Relax", cal.f1Relax);
@@ -80,7 +96,7 @@ void calibration_save() {
     pref.end();
 }
 
-bool calibration_load() {
+bool loadCalibration() {
     pref.begin("mp3-controller", true);
 
     bool ok =
@@ -107,30 +123,35 @@ bool calibration_load() {
     return ok;
 }
 
-void calibration_run() {
+void runCalibration() {
     Serial.println("Starting calibration...");
 
     Serial.println("Step 1: Keep hand RELAXED (no bends)...");
+    flash_led(3);
     delay(5000);
-    cal.f1Relax = calibration_read_flex_avg(PIN_FLEX1, true);
-    cal.f2Relax = calibration_read_flex_avg(PIN_FLEX2, true);
+    countdown(3);
+    cal.f1Relax = readFlexAvg(PIN_FLEX1, true);
+    cal.f2Relax = readFlexAvg(PIN_FLEX2, true);
     Serial.printf("Relaxed -> F1:%d F2:%d\n", cal.f1Relax, cal.f2Relax);
-    flash_led();
-
+    
     Serial.println("Step 2: Bend FLEX 1 fully...");
+    flash_led(2);
     delay(5000);
-    cal.f1Bent = calibration_read_flex_avg(PIN_FLEX1, true);
+    countdown(3);
+    cal.f1Bent = readFlexAvg(PIN_FLEX1, true);
     Serial.printf("F1 Bent -> %d\n", cal.f1Bent);
-    flash_led();
+    // flash_led(2);
 
     Serial.println("Step 3: Bend FLEX 2 fully...");
+    flash_led(1);
     delay(5000);
-    cal.f2Bent = calibration_read_flex_avg(PIN_FLEX2, true);
+    countdown(3);
+    cal.f2Bent = readFlexAvg(PIN_FLEX2, true);
     Serial.printf("F2 Bent -> %d\n", cal.f2Bent);
-    flash_led();
-
+    
+    flash_led(5);
     compute_thresholds();
-    calibration_save();
+    saveCalibration();
 
     Serial.printf(
         "Saved calibration. F1_ON:%d F1_OFF:%d F2_ON:%d F2_OFF:%d\n",
@@ -141,10 +162,15 @@ void calibration_run() {
     Serial.println("Calibration complete.\n");
 }
 
-const FlexCalibrationRaw& calibration_get_raw() {
+const FlexCalibrationRaw& getFlexCalibrationRaw() {
     return cal;
 }
 
-const FlexThresholds& calibration_get_thresholds() {
+const FlexThresholds& getFlexThresholds() {
     return thresholds;
+}
+
+bool calibrationRequested()
+{
+    return digitalRead(PIN_POWER_BUTTON) == LOW;
 }

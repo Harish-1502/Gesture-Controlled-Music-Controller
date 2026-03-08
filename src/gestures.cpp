@@ -1,6 +1,6 @@
 #include "gestures.h"
 #include "config.h"
-
+#include "calibration.h"
 
 #include <Arduino.h>
 #include <math.h>
@@ -40,18 +40,20 @@ void gestures_init() {
 }
 
 GestureEvent gestures_detect(const SensorSample& sample) {
-    if (sample.flex2 >= FLEX2_TRIGGER &&
-        sample.flex1 >= FLEX1_TRIGGER &&
+    const FlexThresholds& thresholds = getFlexThresholds();
+
+    if (sample.flex2 >= thresholds.f2On &&
+        sample.flex1 >= thresholds.f1On &&
         cooldown(lastPlayPauseMs, PLAY_PAUSE_COOLDOWN_MS)) {
         return GestureEvent::PlayPause;
     }
 
-    if (sample.flex2 >= FLEX2_TRIGGER &&
+    if (sample.flex2 >= thresholds.f2On &&
         cooldown(lastVolUpMs, VOL_COOLDOWN_MS)) {
         return GestureEvent::VolumeUp;
     }
 
-    if (sample.flex1 >= FLEX1_TRIGGER &&
+    if (sample.flex1 >= thresholds.f1On &&
         cooldown(lastVolDownMs, VOL_COOLDOWN_MS)) {
         return GestureEvent::VolumeDown;
     }

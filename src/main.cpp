@@ -16,7 +16,7 @@ void setup() {
   startCalibration();
   gestures_init();
 
-  if (!loadCalibration()) {
+  if (!loadCalibration() || calibrationRequested()) {
     runCalibration();
   }
 }
