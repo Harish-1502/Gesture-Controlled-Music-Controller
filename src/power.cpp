@@ -1,5 +1,6 @@
 #include "power.h"
 #include "config.h"
+#include "calibration.h"
 
 #include <Arduino.h>
 #include <OneButton.h>
@@ -21,7 +22,7 @@ namespace {
         }
     }
 
-    void on_long_press_start() {
+    void on_double_press_start() {
         Serial.println("Device going to sleep...");
 
         esp_sleep_enable_ext0_wakeup(GPIO_NUM_15, 0);
@@ -40,7 +41,8 @@ void power_init() {
     digitalWrite(PIN_LIGHT, LOW);
 
     button.attachClick(on_single_click);
-    button.attachLongPressStart(on_long_press_start);
+    button.attachDoubleClick(on_double_press_start);
+    button.attachLongPressStart(runCalibration);
 
     esp_sleep_wakeup_cause_t reason = esp_sleep_get_wakeup_cause();
     if (reason == ESP_SLEEP_WAKEUP_EXT0) {
