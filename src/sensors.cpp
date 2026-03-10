@@ -1,5 +1,6 @@
 #include "sensors.h"
 #include "config.h"
+#include "errors.h"
 
 #include <Arduino.h>
 #include <Wire.h>
@@ -15,6 +16,8 @@ bool sensors_init() {
     Serial.println(status);
 
     if (status != 0) {
+        setCurrentError(ErrorCode::MpuInitFailed);
+        errorToString(getCurrentError());
         return false;
     }
 

@@ -1,6 +1,7 @@
 #include "calibration.h"
 #include "config.h"
 #include "state_machine.h"
+#include "errors.h"
 
 #include <Arduino.h>
 #include <Preferences.h>
@@ -12,6 +13,7 @@ namespace {
     FlexCalibrationRaw cal{};
     FlexThresholds thresholds{};
 
+    constexpr int MIN_FLEX_SEPARATION = 250;
     float ema1 = 0.0f;
     float ema2 = 0.0f;
 
@@ -32,6 +34,11 @@ namespace {
             Serial.printf("%d...\n", i);
             delay(1000);
         }
+    }
+
+    bool isFlexCalibrationValid(int relax, int bent)
+    {
+        return abs(bent - relax) >= MIN_FLEX_SEPARATION;
     }
 
     void compute_thresholds() {
@@ -150,19 +157,27 @@ void runCalibration() {
     cal.f2Bent = readFlexAvg(PIN_FLEX2, true);
     Serial.printf("F2 Bent -> %d\n", cal.f2Bent);
     
-    flash_led(5);
-    compute_thresholds();
-    saveCalibration();
 
+    compute_thresholds();
     Serial.printf(
-        "Saved calibration. F1_ON:%d F1_OFF:%d F2_ON:%d F2_OFF:%d\n",
+        "Current calibration. F1_ON:%d F1_OFF:%d F2_ON:%d F2_OFF:%d\n",
         thresholds.f1On, thresholds.f1Off,
         thresholds.f2On, thresholds.f2Off
     );
 
+    if(!isFlexCalibrationValid(cal.f1Relax, cal.f1Bent) || !isFlexCalibrationValid(cal.f2Relax, cal.f2Bent)) {
+        setCurrentError(ErrorCode::CalibrationBadCapture);
+        errorToString(getCurrentError());
+        Serial.println("Calibration failed due to insufficient flex separation. Please try again.");
+        return;
+    }
+
+    flash_led(4);
+    saveCalibration();
     Serial.println("Calibration complete.\n");
     
     setCurrentState(State::Idle);
+    errorClear();
     digitalWrite(PIN_LIGHT, LOW);
 }
 
