@@ -5,6 +5,7 @@
 #include "ble_media.h"
 #include "power.h"
 #include "calibration.h"
+#include "state_machine.h"
 
 void setup() {
   Serial.begin(115200);
@@ -24,14 +25,35 @@ void setup() {
 void loop() {
   power_update();
 
-  if (!power_is_activated()) {
-      return;
-  }
+  switch(getCurrentState())
+  {
+      case State::Idle:{
+        // checkWakeGesture();
+        // Serial.println("Idle...");
+        break;
+      }
+      case State::Running:{
+        // processGestures();
+        // Serial.println("Running...");
+        const SensorSample sample = sensors_read();
+        const GestureEvent event = gestures_detect(sample);
 
-  const SensorSample sample = sensors_read();
-  const GestureEvent event = gestures_detect(sample);
+        if (event != GestureEvent::None && ble_media_is_connected()) {
+            ble_media_send(event);
+        }
+        break;
+      }
 
-  if (event != GestureEvent::None && ble_media_is_connected()) {
-      ble_media_send(event);
+      case State::Calibrating:{
+        // Serial.println("Calibrating...");
+        runCalibration();
+        break;
+      }
+
+      case State::Sleep:{
+        // Serial.println("Sleeping...");
+        enter_sleep_mode();
+        break;
+      }
   }
 }

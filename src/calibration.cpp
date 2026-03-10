@@ -1,5 +1,6 @@
 #include "calibration.h"
 #include "config.h"
+#include "state_machine.h"
 
 #include <Arduino.h>
 #include <Preferences.h>
@@ -160,6 +161,9 @@ void runCalibration() {
     );
 
     Serial.println("Calibration complete.\n");
+    
+    setCurrentState(State::Idle);
+    digitalWrite(PIN_LIGHT, LOW);
 }
 
 const FlexCalibrationRaw& getFlexCalibrationRaw() {
