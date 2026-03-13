@@ -1,4 +1,8 @@
 #include "errors.h"
+#include "calibration.h"
+#include "state_machine.h"
+// #include "gestures.h"
+#include "ble_media.h"
 #include <Arduino.h>
 
 const char* errorToString(ErrorCode error) {
@@ -57,4 +61,55 @@ bool errorRequiresCalibration(ErrorCode error) {
         default:
             return false;
     }
+}
+
+ErrorCode validateCalibrationData(const FlexCalibrationRaw& raw) {
+    if (raw.f1Relax >= raw.f1Bent) return ErrorCode::CalibrationDataInvalid;
+    if (raw.f2Relax >= raw.f2Bent) return ErrorCode::CalibrationDataInvalid;
+    return ErrorCode::None;
+}
+
+ErrorCode validateCalibrationCapture(const FlexCalibrationRaw& raw) {
+    const int minGap = 250; // example threshold
+
+    if ((raw.f1Bent - raw.f1Relax) < minGap) return ErrorCode::CalibrationBadCapture;
+    if ((raw.f2Bent - raw.f2Relax) < minGap) return ErrorCode::CalibrationBadCapture;
+
+    return ErrorCode::None;
+}
+
+ErrorCode canTransition(State current, State next) {
+    if (current == State::Sleep && next == State::Calibrating) {
+        return ErrorCode::InvalidStateTransition;
+    }
+
+    if (current == next) {
+        return ErrorCode::None;
+    }
+
+    return ErrorCode::None;
+}
+
+ErrorCode requireNotCalibrating(State current) {
+    if (current == State::Calibrating) {
+        return ErrorCode::CalibrationInProgress;
+    }
+    return ErrorCode::None;
+}
+
+ErrorCode sendMediaCommand(GestureEvent event){
+    if (event == GestureEvent::None) {
+        return ErrorCode::BleCommandFailed;
+    }
+
+    if (!ble_media_is_connected()) {
+        return ErrorCode::BleDisconnected;
+    }
+
+    ble_media_send(event);
+    return ErrorCode::None;
+}
+
+ErrorCode initMpu(uint8_t status){
+    return (status == 0) ? ErrorCode::None : ErrorCode::MpuInitFailed;
 }

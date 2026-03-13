@@ -8,3 +8,4 @@ struct SensorSample {
 
 bool sensors_init();
 SensorSample sensors_read();
+// ErrorCode initMpu(uint8_t status);
