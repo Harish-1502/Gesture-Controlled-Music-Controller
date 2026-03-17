@@ -3,6 +3,9 @@
 #include "state_machine.h"
 #include "calibration.h"
 #include "gestures.h"
+#include "ble_media_mock.h"
+
+// #include "BleKeyboard.h"
 
 void test_initMpu_ok();
 void test_initMpu_fail();
@@ -24,6 +27,11 @@ void test_requireNotCalibrating_allows_idle();
 void test_sendMediaCommand_none_event();
 void test_sendMediaCommand_disconnected();
 void test_sendMediaCommand_valid();
+
+void setUp(void) {
+    ble_media_reset();
+}
+void tearDown(void) {}
 
 int main() {
     UNITY_BEGIN();
@@ -111,16 +119,21 @@ void test_requireNotCalibrating_allows_idle() {
 }
 
 void test_sendMediaCommand_none_event() {
+    ble_media_set_connected(true);
     TEST_ASSERT_EQUAL(ErrorCode::BleCommandFailed,
         sendMediaCommand(GestureEvent::None));
 }
 
 void test_sendMediaCommand_disconnected() {
+    ble_media_set_connected(false);
     TEST_ASSERT_EQUAL(ErrorCode::BleDisconnected,
         sendMediaCommand(GestureEvent::PlayPause));
 }
 
 void test_sendMediaCommand_valid() {
+    ble_media_set_connected(true);
     TEST_ASSERT_EQUAL(ErrorCode::None,
         sendMediaCommand(GestureEvent::PlayPause));
+
+    TEST_ASSERT_EQUAL(GestureEvent::PlayPause, ble_media_get_last_event());
 }

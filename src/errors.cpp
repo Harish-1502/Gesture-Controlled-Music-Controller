@@ -1,9 +1,14 @@
 #include "errors.h"
-#include "calibration.h"
-#include "state_machine.h"
-// #include "gestures.h"
+#ifdef PIO_UNIT_TESTING
+#include "ble_media_mock.h"
+#else
 #include "ble_media.h"
-#include <Arduino.h>
+#endif
+// #include "calibration.h"
+// #include "state_machine.h"
+// #include "gestures.h"
+// #include "ble_media.h"
+// #include <Arduino.h>
 
 const char* errorToString(ErrorCode error) {
     switch (error) {
@@ -33,7 +38,7 @@ ErrorCode getCurrentError() {
 void setCurrentError(ErrorCode error) {
     if (currentError != error) {
         currentError = error;
-        Serial.printf("Error set: %s\n", errorToString(error));
+        // Serial.printf("Error set: %s\n", errorToString(error));
     }
 }
 

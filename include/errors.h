@@ -1,7 +1,10 @@
 #pragma once
 #include <stdint.h>
-
+#include "calibration.h"
+#include "state_machine.h"
 #include "gestures.h"
+// #include <Arduino.h>
+// #include "ble_media.h"
 
 enum class ErrorCode : uint8_t {
     None = 0,
