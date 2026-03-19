@@ -8,6 +8,19 @@ void ble_media_init() {
     bleKeyboard.begin();
 }
 
+ErrorCode ble_media_send_checked(GestureEvent event) {
+    if (event == GestureEvent::None) {
+        return ErrorCode::BleCommandFailed;
+    }
+
+    if (!ble_media_is_connected()) {
+        return ErrorCode::BleDisconnected;
+    }
+
+    ble_media_send(event);
+    return ErrorCode::None;
+}
+
 bool ble_media_is_connected() {
     return bleKeyboard.isConnected();
 }

@@ -1,6 +1,6 @@
 #include "sensors.h"
 #include "config.h"
-#include "errors.h"
+// #include "errors.h"
 
 #include <Arduino.h>
 #include <Wire.h>
@@ -47,4 +47,34 @@ SensorSample sensors_read() {
     sample.angleY = mpu.getAngleY();
 
     return sample;
+}
+
+ErrorCode sensors_init_checked() {
+    Wire.begin();
+
+    byte status = 0;
+
+    #ifdef INJECT_MPU_INIT_FAIL
+        status = 1;
+    #else
+        status = mpu.begin();
+    #endif
+
+    Serial.print(F("MPU6050 status: "));
+    Serial.println(status);
+
+    ErrorCode err = initMpu(status);
+    if (err != ErrorCode::None) {
+        return err;
+    }
+
+    Serial.println(F("Calculating offsets, do not move MPU6050"));
+    delay(1000);
+    mpu.calcOffsets(true, true);
+    Serial.println(F("Done!\n"));
+
+    analogSetPinAttenuation(PIN_FLEX1, ADC_11db);
+    analogSetPinAttenuation(PIN_FLEX2, ADC_11db);
+
+    return ErrorCode::None;
 }

@@ -4,11 +4,6 @@
 #else
 #include "ble_media.h"
 #endif
-// #include "calibration.h"
-// #include "state_machine.h"
-// #include "gestures.h"
-// #include "ble_media.h"
-// #include <Arduino.h>
 
 const char* errorToString(ErrorCode error) {
     switch (error) {

@@ -55,3 +55,15 @@ jobs:
           path: |
             .pio/build/esp32dev/firmware.bin
             .pio/build/esp32dev/firmware.elf
+      
+      - name: Build MPU fail firmware
+        run: pio run -e esp32dev_mpu_fail
+
+      - name: Build BLE fail firmware
+        run: pio run -e esp32dev_ble_fail
+
+      - name: Build bad calibration firmware
+        run: pio run -e esp32dev_bad_calibration
+
+      - name: Build invalid calibration firmware
+        run: pio run -e esp32dev_invalid_calibration

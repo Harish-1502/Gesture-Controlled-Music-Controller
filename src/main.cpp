@@ -7,6 +7,7 @@
 #include "calibration.h"
 #include "state_machine.h"
 #include "errors.h"
+#include "recovery.h"
 
 void setup() {
   Serial.begin(115200);
@@ -14,19 +15,23 @@ void setup() {
 
   power_init();
   ble_media_init();
-  sensors_init();
+
+  ErrorCode sensorErr = sensors_init_checked();
+  if (sensorErr != ErrorCode::None) {
+    handleError(sensorErr);
+  }
+
   startCalibration();
   gestures_init();
 
   if (!loadCalibration() || calibrationRequested()) {
-    setCurrentError(ErrorCode::CalibrationDataInvalid);
-    errorToString(getCurrentError());
-    runCalibration();
+    handleError(ErrorCode::CalibrationDataInvalid);
   }
 }
 
 void loop() {
   power_update();
+  serviceRecovery();
 
   switch(getCurrentState())
   {
@@ -41,20 +46,26 @@ void loop() {
         const SensorSample sample = sensors_read();
         const GestureEvent event = gestures_detect(sample);
 
-        if (event != GestureEvent::None && ble_media_is_connected()) {
-            ble_media_send(event);
-        } else if(!ble_media_is_connected()) {
-            setCurrentError(ErrorCode::BleDisconnected);
-            errorToString(getCurrentError());
-            ble_media_init(); // Attempt to reinitialize BLE if disconnected
-            errorClear(); // Clear error after attempting reconnection
+        if (event != GestureEvent::None) {
+          ErrorCode err = ble_media_send_checked(event);
+          if (err != ErrorCode::None) {
+            handleError(err);
+          } else {
+            errorClear();
+          }
         }
         break;
       }
 
       case State::Calibrating:{
         // Serial.println("Calibrating...");
-        runCalibration();
+        ErrorCode err = runCalibrationChecked();
+        if (err != ErrorCode::None) {
+          handleError(err);
+        } else {
+          errorClear();
+          setCurrentState(State::Running);
+        }
         break;
       }
 

@@ -118,6 +118,17 @@ bool loadCalibration() {
         cal.f1Bent  = pref.getInt("f1Bent");
         cal.f2Relax = pref.getInt("f2Relax");
         cal.f2Bent  = pref.getInt("f2Bent");
+        #ifdef INJECT_INVALID_CALIBRATION_DATA
+            cal.f1Relax = 800;
+            cal.f1Bent  = 700;
+            cal.f2Relax = 900;
+            cal.f2Bent  = 850;
+        #endif
+
+        if (validateCalibrationData(cal) != ErrorCode::None) {
+            pref.end();
+            return false;
+        }
         compute_thresholds();
 
         Serial.printf(
@@ -131,7 +142,7 @@ bool loadCalibration() {
     return ok;
 }
 
-void runCalibration() {
+ErrorCode runCalibrationChecked() {
     Serial.println("Starting calibration...");
 
     Serial.println("Step 1: Keep hand RELAXED (no bends)...");
@@ -156,7 +167,31 @@ void runCalibration() {
     countdown(3);
     cal.f2Bent = readFlexAvg(PIN_FLEX2, true);
     Serial.printf("F2 Bent -> %d\n", cal.f2Bent);
-    
+ 
+#ifdef INJECT_BAD_CALIBRATION_CAPTURE
+    cal.f1Relax = 500;
+    cal.f1Bent  = 520;
+    cal.f2Relax = 600;
+    cal.f2Bent  = 620;
+#endif
+
+    ErrorCode err = validateCalibrationData(cal);
+    if (err != ErrorCode::None) {
+        Serial.println("Calibration failed: invalid calibration data.");
+        return err;
+    }
+
+    if (!isFlexCalibrationValid(cal.f1Relax, cal.f1Bent) ||
+        !isFlexCalibrationValid(cal.f2Relax, cal.f2Bent)) {
+        Serial.println("Calibration failed due to insufficient flex separation. Please try again.");
+        return ErrorCode::CalibrationBadCapture;
+    }
+
+    ErrorCode captureErr = validateCalibrationCapture(cal);
+    if (captureErr != ErrorCode::None) {
+        Serial.println("Calibration failed: bad capture.");
+        return captureErr;
+    }
 
     compute_thresholds();
     Serial.printf(
@@ -172,13 +207,30 @@ void runCalibration() {
         return;
     }
 
+    Serial.printf(
+        "Current calibration. F1_ON:%d F1_OFF:%d F2_ON:%d F2_OFF:%d\n",
+        thresholds.f1On, thresholds.f1Off,
+        thresholds.f2On, thresholds.f2Off
+    );
     flash_led(4);
     saveCalibration();
     Serial.println("Calibration complete.\n");
     
+    digitalWrite(PIN_LIGHT, LOW);
+    return ErrorCode::None;
+}
+
+void runCalibration() {
+    ErrorCode err = runCalibrationChecked();
+
+    if (err != ErrorCode::None) {
+        setCurrentError(err);
+        Serial.println(errorToString(err));
+        return;
+    }
+
     setCurrentState(State::Idle);
     errorClear();
-    digitalWrite(PIN_LIGHT, LOW);
 }
 
 const FlexCalibrationRaw& getFlexCalibrationRaw() {

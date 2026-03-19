@@ -1,4 +1,5 @@
 #pragma once
+#include "errors.h"
 
 struct FlexCalibrationRaw
 {
@@ -26,5 +27,5 @@ const FlexCalibrationRaw& getFlexCalibrationRaw();
 
 int readFlexAvg(int flexPin, bool calibrationMode);
 int calibration_interp(int relax, int bent, float pct);
-
+ErrorCode runCalibrationChecked();
 bool calibrationRequested();
