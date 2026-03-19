@@ -3,6 +3,7 @@
 #include "state_machine.h"
 #include "error_codes.h"
 #include "gesture_types.h"
+#include "calibration_types.h"
 
 void setCurrentError(ErrorCode code);
 void errorClear();
