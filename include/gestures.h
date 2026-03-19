@@ -1,15 +1,7 @@
 #pragma once
 
 #include "sensors.h"
-
-enum class GestureEvent {
-    None,
-    PlayPause,
-    VolumeUp,
-    VolumeDown,
-    NextTrack,
-    PreviousTrack
-};
+#include "gesture_types.h"
 
 void gestures_init();
 GestureEvent gestures_detect(const SensorSample& sample);

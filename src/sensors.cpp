@@ -1,16 +1,12 @@
 #include "sensors.h"
 #include "config.h"
-// #include "errors.h"
+#include "errors.h"
 
 #include <Arduino.h>
 #include <Wire.h>
 #include <MPU6050_light.h>
 
 static MPU6050 mpu(Wire);
-
-// ErrorCode initMpu(uint8_t status){
-//     return (status == 0) ? ErrorCode::None : ErrorCode::MpuInitFailed;
-// }
 
 bool sensors_init() {
     Wire.begin();
@@ -23,7 +19,7 @@ bool sensors_init() {
 
     if (error == ErrorCode::MpuInitFailed) {
         setCurrentError(ErrorCode::MpuInitFailed);
-        errorToString(getCurrentError());
+        Serial.println(errorToString(getCurrentError()));
         return false;
     }
 

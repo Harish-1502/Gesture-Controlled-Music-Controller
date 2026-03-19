@@ -1,0 +1,21 @@
+#pragma once
+#include <stdint.h>
+
+enum class ErrorCode : uint8_t {
+    None = 0,
+
+    // Fatal startup / hardware errors
+    MpuInitFailed,
+    CalibrationDataInvalid,
+
+    // System / communication
+    BleDisconnected,
+    BleCommandFailed,
+
+    // Power / state issues
+    InvalidStateTransition,
+
+    // Calibration process
+    CalibrationInProgress,
+    CalibrationBadCapture,
+};

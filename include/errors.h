@@ -1,29 +1,8 @@
 #pragma once
 #include <stdint.h>
-#include "calibration.h"
 #include "state_machine.h"
-#include "gestures.h"
-// #include <Arduino.h>
-// #include "ble_media.h"
-
-enum class ErrorCode : uint8_t {
-    None = 0,
-
-    // Fatal startup / hardware errors
-    MpuInitFailed,
-    CalibrationDataInvalid,
-
-    // System / communication
-    BleDisconnected,
-    BleCommandFailed,
-
-    // Power / state issues
-    InvalidStateTransition,
-
-    // Calibration process
-    CalibrationInProgress,
-    CalibrationBadCapture,
-};
+#include "error_codes.h"
+#include "gesture_types.h"
 
 void setCurrentError(ErrorCode code);
 void errorClear();

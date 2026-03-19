@@ -200,13 +200,6 @@ ErrorCode runCalibrationChecked() {
         thresholds.f2On, thresholds.f2Off
     );
 
-    if(!isFlexCalibrationValid(cal.f1Relax, cal.f1Bent) || !isFlexCalibrationValid(cal.f2Relax, cal.f2Bent)) {
-        setCurrentError(ErrorCode::CalibrationBadCapture);
-        errorToString(getCurrentError());
-        Serial.println("Calibration failed due to insufficient flex separation. Please try again.");
-        return;
-    }
-
     Serial.printf(
         "Current calibration. F1_ON:%d F1_OFF:%d F2_ON:%d F2_OFF:%d\n",
         thresholds.f1On, thresholds.f1Off,

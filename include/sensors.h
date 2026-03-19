@@ -1,5 +1,5 @@
 #pragma once
-#include "errors.h"
+#include "error_codes.h"
 
 struct SensorSample {
     int flex1;
