@@ -3,9 +3,15 @@
 #include <BleKeyboard.h>
 
 static BleKeyboard bleKeyboard("ESP32 Keyboard");
+static bool bleStarted = false;
 
 void ble_media_init() {
+    if (bleStarted) {
+        return;
+    }
+
     bleKeyboard.begin();
+    bleStarted = true;
 }
 
 ErrorCode ble_media_send_checked(GestureEvent event) {

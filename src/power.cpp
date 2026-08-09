@@ -21,6 +21,9 @@ namespace {
             setCurrentState(State::Idle);
             digitalWrite(PIN_LIGHT, LOW);
             Serial.println("Device deactivated.");
+        } else if (getCurrentState() == State::Calibrating) {
+            Serial.println("Calibration cancelled.");
+            setCurrentState(State::Idle);
         }
     }
 
@@ -54,14 +57,10 @@ void power_update() {
     button.tick();
 }
 
-// bool power_is_activated() {
-//     return activated;
-// }
-
 void enter_sleep_mode() {
     Serial.println("Entering sleep mode...");
 
-    esp_sleep_enable_ext0_wakeup(GPIO_NUM_15, 0);
+    esp_sleep_enable_ext0_wakeup(GPIO_NUM_13, 0);
 
     while (digitalRead(PIN_POWER_BUTTON) == LOW) {
         delay(10);

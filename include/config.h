@@ -3,8 +3,8 @@
 #include <Arduino.h>
 
 // Pins
-constexpr int PIN_POWER_BUTTON = 15;
-constexpr int PIN_LIGHT        = 13;
+constexpr int PIN_POWER_BUTTON = 13;
+constexpr int PIN_LIGHT        = 15;
 constexpr int PIN_FLEX1        = 34;
 constexpr int PIN_FLEX2        = 33;
 

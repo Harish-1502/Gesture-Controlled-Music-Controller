@@ -21,12 +21,12 @@ void setup() {
     handleError(sensorErr);
   }
 
-  startCalibration();
+  // startCalibration();
   gestures_init();
 
-  if (!loadCalibration() || calibrationRequested()) {
-    handleError(ErrorCode::CalibrationDataInvalid);
-  }
+  // if (!loadCalibration() || calibrationRequested()) {
+  //   handleError(ErrorCode::CalibrationDataInvalid);
+  // }
 }
 
 void loop() {
@@ -44,6 +44,7 @@ void loop() {
         // processGestures();
         // Serial.println("Running...");
         const SensorSample sample = sensors_read();
+
         const GestureEvent event = gestures_detect(sample);
 
         if (event != GestureEvent::None) {
